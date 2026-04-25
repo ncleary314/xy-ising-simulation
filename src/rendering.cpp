@@ -1,7 +1,7 @@
 #include "rendering.h"
 #include <cmath>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 #include <string>
 
 static TTF_Font* font = nullptr;
