@@ -1,0 +1,17 @@
+# build outputs
+build/
+*.o
+*.d
+*.exe
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
