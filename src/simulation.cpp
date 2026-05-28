@@ -39,6 +39,9 @@ Simulation::Simulation(int size)
     energyPerSpin = 0.0;
     vortexDensity = 0.0;
     helicityModulus = 0.0;
+
+    helicityCosineTerm = 0.0;
+    helicitySineTerm = 0.0;
     heatCapacity = 0.0;
     susceptibility = 0.0;
 
@@ -46,6 +49,8 @@ Simulation::Simulation(int size)
     energySum = 0.0;
     magnetizationSquaredSum = 0.0;
     energySquaredSum = 0.0;
+    helicityCosineSum = 0.0;
+    helicitySineSquaredSum = 0.0;
     measurementCount = 0;
     sweepCount = 0;
     thermalizationSweeps = 5000;
@@ -183,10 +188,14 @@ void Simulation::computeObservables() {
 
     vortexDensity = static_cast<double>(countVortices()) / N;
 
+    helicityCosineTerm = cosineSum / N;
+
+    helicitySineTerm = (sineSum * sineSum) / N;
+
     // Υ = 1/N * ​⟨∑⟨ij⟩x​ ​cos(θi​−θj​)⟩ − 1/TN * ​⟨(∑⟨ij⟩x ​​sin(θi​−θj​))^2⟩
     // first term -> spin rigidity
     // second term -> thermal fluctuations
-    helicityModulus = (cosineSum / N) - (sineSum * sineSum) / (temperature * N);
+    // helicityModulus = (cosineSum / N) - (sineSum * sineSum) / (temperature * N);
 }
 
 // MONTE CARLO STEP
@@ -287,6 +296,10 @@ void Simulation::step() {
 
         energySquaredSum += energyPerSpin * energyPerSpin;
 
+        helicityCosineSum += helicityCosineTerm;
+
+        helicitySineSquaredSum += helicitySineTerm;
+
         measurementCount++;
     }
 
@@ -300,11 +313,17 @@ void Simulation::step() {
 
         double avgE2 = energySquaredSum / measurementCount;
 
+        double avgHelicityCosine = helicityCosineSum / measurementCount;
+
+        double avgHelicitySineSquared = helicitySineSquaredSum / measurementCount;
+
         int N = latticeSize * latticeSize;
 
         susceptibility = (N / temperature) * (avgM2 - avgM * avgM);
 
         heatCapacity = (N / (temperature * temperature)) * (avgE2 - avgE * avgE);
+
+        helicityModulus = avgHelicityCosine - (avgHelicitySineSquared / temperature);
     }
 
     sweepCount++;
@@ -339,6 +358,8 @@ void Simulation::resize(int newSize) {
     energySum = 0.0;
     magnetizationSquaredSum = 0.0;
     energySquaredSum = 0.0;
+    helicityCosineSum = 0.0;
+    helicitySineSquaredSum = 0.0;
 }
 
 // SETTERS
@@ -354,6 +375,8 @@ void Simulation::setTemperature(double newTemp) {
     energySum = 0.0;
     magnetizationSquaredSum = 0.0;
     energySquaredSum = 0.0;
+    helicityCosineSum = 0.0;
+    helicitySineSquaredSum = 0.0;
 }
 
 void Simulation::setMagneticField(double strength, double angle) {

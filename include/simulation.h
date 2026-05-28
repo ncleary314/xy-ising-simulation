@@ -55,6 +55,8 @@ private:
     double energyPerSpin;
     double vortexDensity;
     double helicityModulus;
+    double helicityCosineTerm;
+    double helicitySineTerm;
     double heatCapacity;
     double susceptibility;
     std::vector<std::pair<int,int>> vortexPositions;
@@ -64,6 +66,8 @@ private:
     double energySum;
     double magnetizationSquaredSum;
     double energySquaredSum;
+    double helicityCosineSum;
+    double helicitySineSquaredSum;
     int measurementCount;
 
     int sweepCount;
