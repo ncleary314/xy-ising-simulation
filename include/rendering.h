@@ -7,6 +7,10 @@ void renderLattice(SDL_Renderer* renderer,
                    const std::vector<std::vector<double>>& spins,
                    int cellSize);
 
+void renderVortices(SDL_Renderer* renderer,
+                    const std::vector<std::pair<int,int>>& vortices,
+                    int cellSize);
+
 void initText();
 void renderText(SDL_Renderer* renderer,
                 const std::string& text,

@@ -41,6 +41,26 @@ void renderLattice(SDL_Renderer* renderer,
     }
 }
 
+void renderVortices(SDL_Renderer* renderer,
+                    const std::vector<std::pair<int,int>>& vortices,
+                    int cellSize)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    for (const auto& v : vortices) {
+
+        SDL_Rect rect;
+
+        rect.x = v.first * cellSize + cellSize / 4;
+        rect.y = v.second * cellSize + cellSize / 4;
+
+        rect.w = cellSize / 2;
+        rect.h = cellSize / 2;
+
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
 // Initialize SDL_ttf and load font
 void initText() {
     if (TTF_Init() == -1) {

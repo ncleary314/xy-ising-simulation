@@ -58,6 +58,10 @@ void handleInput(SDL_Event& event, Simulation& sim) {
                 sim.setMagneticField(sim.getMagneticFieldStrength(), 0.0);
                 break;
             }
+
+            case SDLK_SPACE: {
+                break;
+            }
         }
     }
 }
