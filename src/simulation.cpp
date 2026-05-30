@@ -53,7 +53,7 @@ Simulation::Simulation(int size)
     helicitySineSquaredSum = 0.0;
     measurementCount = 0;
     sweepCount = 0;
-    thermalizationSweeps = 5000;
+    // thermalizationSweeps = 5000;
     equilibrated = false;
 
     // initialize site distribution
@@ -348,6 +348,19 @@ void Simulation::resize(int newSize) {
         for (int y = 0; y < latticeSize; y++) {
             spinAngles[x][y] = randomAngle();
         }
+    }
+
+    if (latticeSize <= 16) {
+        thermalizationSweeps = 5000;
+    }
+    else if (latticeSize <= 32) {
+        thermalizationSweeps = 10000;
+    }
+    else if (latticeSize <= 64) {
+        thermalizationSweeps = 25000;
+    }
+    else {
+        thermalizationSweeps = 75000;
     }
 
     sweepCount = 0;
