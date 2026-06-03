@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <utility>
+#include <tuple>
 
 class Simulation {
 public:
@@ -25,7 +26,7 @@ public:
     double getHelicityModulus() const;
     double getHeatCapacity() const;
     double getSusceptibility() const;
-    const std::vector<std::pair<int,int>>& getVortexPositions() const;
+    const std::vector<std::tuple<int,int,int>>& getVortexPositions() const;
 
     double getAverageMagnetization() const;
     double getAverageEnergy() const;
@@ -59,7 +60,8 @@ private:
     double helicitySineTerm;
     double heatCapacity;
     double susceptibility;
-    std::vector<std::pair<int,int>> vortexPositions;
+    // std::vector<std::pair<int,int>> vortexPositions;
+    std::vector<std::tuple<int,int,int>> vortexPositions;
 
     // Running averages
     double magnetizationSum;

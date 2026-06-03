@@ -8,7 +8,7 @@ void renderLattice(SDL_Renderer* renderer,
                    int cellSize);
 
 void renderVortices(SDL_Renderer* renderer,
-                    const std::vector<std::pair<int,int>>& vortices,
+                    const std::vector<std::tuple<int,int,int>>& vortices,
                     int cellSize);
 
 void initText();

@@ -41,18 +41,32 @@ void renderLattice(SDL_Renderer* renderer,
     }
 }
 
+// void renderVortices(SDL_Renderer* renderer,
+//                     const std::vector<std::pair<int,int>>& vortices,
+//                     int cellSize)
 void renderVortices(SDL_Renderer* renderer,
-                    const std::vector<std::pair<int,int>>& vortices,
+                    const std::vector<std::tuple<int,int,int>>& vortices,
                     int cellSize)
 {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
     for (const auto& v : vortices) {
+
+        int x = std::get<0>(v);
+        int y = std::get<1>(v);
+        int winding = std::get<2>(v);
+
+        // Vortex = white
+        if (winding > 0) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        }
+        // Antivortex = black
+        else {
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        }
 
         SDL_Rect rect;
 
-        rect.x = v.first * cellSize + cellSize / 4;
-        rect.y = v.second * cellSize + cellSize / 4;
+        rect.x = x * cellSize + cellSize / 4;
+        rect.y = y * cellSize + cellSize / 4;
 
         rect.w = cellSize / 2;
         rect.h = cellSize / 2;

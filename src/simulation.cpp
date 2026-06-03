@@ -142,7 +142,7 @@ int Simulation::countVortices() {
             if (windingNumber != 0) {
                 vortices += std::abs(windingNumber);
 
-                vortexPositions.push_back({x, y});
+                vortexPositions.push_back({x, y, windingNumber});
             }
         }
     }
@@ -434,7 +434,7 @@ double Simulation::getVortexDensity() const {
     return vortexDensity;
 }
 
-const std::vector<std::pair<int,int>>&
+const std::vector<std::tuple<int,int,int>>&
 Simulation::getVortexPositions() const {
 
     return vortexPositions;

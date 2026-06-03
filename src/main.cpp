@@ -44,8 +44,8 @@ int main() {
     bool dataSaved = false;
 
     int samplesCollected = 0;
-    const int samplesPerTemperature = 500;      // Raise to 1000 for more accurate L=128 susceptibility
-    const int sweepsPerSample = 25;     // Sweeps skipped between each sample
+    const int samplesPerTemperature = 1000;      // Raise to 1000 for more accurate L=128 susceptibility
+    const int sweepsPerSample = 25;     // Sweeps skipped between each sample. Change to 50 if adding field strength.
     int sweepsSinceLastSample = 0;
 
     SDL_Event event;
@@ -56,12 +56,21 @@ int main() {
 
     int currentSizeIndex = 0;
 
+    std::vector<double> fieldStrengths = {0.0};
+    // std::vector<double> fieldStrengths = {0.0, 0.1, 0.2};    // Uncomment and remove above line to add field strengths to sampling
+
+    int currentFieldIndex = 0;
+
     const double maxTemperature = 2.0;
     const double temperatureStep = 0.1;
     double accumulatedEnergy = 0.0;
     double accumulatedMagnetization = 0.0;
     double accumulatedVortexDensity = 0.0;
     double accumulatedHelicity = 0.0;
+    double accumulatedEnergy2 = 0.0;
+    double accumulatedMagnetization2 = 0.0;
+    double accumulatedVortexDensity2 = 0.0;
+    double accumulatedHelicity2 = 0.0;
 
     std::ofstream outputFile;
 
@@ -92,15 +101,23 @@ int main() {
 
                     simulation.resize(latticeSizes[currentSizeIndex]);
 
+                    simulation.setMagneticField(fieldStrengths[currentFieldIndex], 0.0);
+
                     std::stringstream filename;
-                    filename << "xy_L" << latticeSizes[currentSizeIndex] << ".csv";
+                    filename << "xy_L" << latticeSizes[currentSizeIndex]
+                             << "_H" << fieldStrengths[currentFieldIndex]
+                             << ".csv";
                     outputFile.open(filename.str());
-                    outputFile << "T,E,M,V,Y,Cv,X\n";
+                    outputFile << "H,T,E,dE,M,dM,V,dV,Y,dY,Cv,X\n";
 
                     accumulatedEnergy = 0.0;
                     accumulatedMagnetization = 0.0;
                     accumulatedVortexDensity = 0.0;
                     accumulatedHelicity = 0.0;
+                    accumulatedEnergy2 = 0.0;
+                    accumulatedMagnetization2 = 0.0;
+                    accumulatedVortexDensity2 = 0.0;
+                    accumulatedHelicity2 = 0.0;
 
                     samplesCollected = 0;
                     sweepsSinceLastSample = 0;
@@ -121,13 +138,20 @@ int main() {
 
             if (sweepsSinceLastSample >= sweepsPerSample) {
 
-                accumulatedEnergy += simulation.getEnergyPerSpin();
+                double E = simulation.getEnergyPerSpin();
+                double M = simulation.getMagnetization();
+                double V = simulation.getVortexDensity();
+                double Y = simulation.getHelicityModulus();
 
-                accumulatedMagnetization += simulation.getMagnetization();
+                accumulatedEnergy += E;
+                accumulatedMagnetization += M;
+                accumulatedVortexDensity += V;
+                accumulatedHelicity += Y;
 
-                accumulatedVortexDensity += simulation.getVortexDensity();
-
-                accumulatedHelicity += simulation.getHelicityModulus();
+                accumulatedEnergy2 += E * E;
+                accumulatedMagnetization2 += M * M;
+                accumulatedVortexDensity2 += V * V;
+                accumulatedHelicity2 += Y * Y;
 
                 samplesCollected++;
 
@@ -144,11 +168,17 @@ int main() {
 
                 double avgY = accumulatedHelicity / samplesCollected;
 
-                outputFile << simulation.getTemperature() << ","
-                            << avgE << ","
-                            << avgM << ","
-                            << avgV << ","
-                            << avgY << ","
+                double errE = sqrt((accumulatedEnergy2 / samplesCollected - avgE * avgE) / samplesCollected);
+                double errM = sqrt((accumulatedMagnetization2 / samplesCollected - avgM * avgM) / samplesCollected);
+                double errV = sqrt((accumulatedVortexDensity2 / samplesCollected - avgV * avgV) / samplesCollected);
+                double errY = sqrt((accumulatedHelicity2 / samplesCollected - avgY * avgY) / samplesCollected);
+
+                outputFile << simulation.getMagneticFieldStrength() << ","
+                            << simulation.getTemperature() << ","
+                            << avgE << "," << errE << ","
+                            << avgM << "," << errM << ","
+                            << avgV << "," << errV << ","
+                            << avgY << "," << errY << ","
                             << simulation.getHeatCapacity() << ","
                             << simulation.getSusceptibility() << "\n";
 
@@ -158,6 +188,10 @@ int main() {
                 accumulatedMagnetization = 0.0;
                 accumulatedVortexDensity = 0.0;
                 accumulatedHelicity = 0.0;
+                accumulatedEnergy2 = 0.0;
+                accumulatedMagnetization2 = 0.0;
+                accumulatedVortexDensity2 = 0.0;
+                accumulatedHelicity2 = 0.0;
 
                 samplesCollected = 0;
                 sweepsSinceLastSample = 0;
@@ -166,9 +200,19 @@ int main() {
 
                     outputFile.close();
 
-                    currentSizeIndex++;
+                    currentFieldIndex++;
 
-                    // All lattice sizes finished
+
+                    // FINISHED ALL FIELD STRENGTHS?
+                    if (currentFieldIndex >= fieldStrengths.size()) {
+
+                        currentFieldIndex = 0;
+
+                        currentSizeIndex++;
+                    }
+
+
+                    // FINISHED ALL LATTICE SIZES?
                     if (currentSizeIndex >= latticeSizes.size()) {
 
                         autoSweepMode = false;
@@ -178,13 +222,21 @@ int main() {
                         simulation.resize(DEFAULT_LATTICE_SIZE);
 
                         simulation.setTemperature(DEFAULT_TEMPERATURE);
+
+                        simulation.setMagneticField(0.0, 0.0);
                     }
                     else {
 
-                        // Switch to next lattice size
+                        // Switch lattice size
                         simulation.resize(latticeSizes[currentSizeIndex]);
 
-                        // Reset temperature sweep
+                        // Set next field strength
+                        simulation.setMagneticField(
+                            fieldStrengths[currentFieldIndex],
+                            0.0
+                        );
+
+                        // Reset temperature
                         sweepTemperature = 0.2;
 
                         simulation.setTemperature(sweepTemperature);
@@ -195,17 +247,27 @@ int main() {
                         accumulatedVortexDensity = 0.0;
                         accumulatedHelicity = 0.0;
 
+                        accumulatedEnergy2 = 0.0;
+                        accumulatedMagnetization2 = 0.0;
+                        accumulatedVortexDensity2 = 0.0;
+                        accumulatedHelicity2 = 0.0;
+
                         samplesCollected = 0;
+
                         sweepsSinceLastSample = 0;
 
-                        // Open new CSV file
+                        // Open new CSV
                         std::stringstream filename;
 
-                        filename << "xy_L" << latticeSizes[currentSizeIndex] << ".csv";
+                        filename << "xy_L"
+                                 << latticeSizes[currentSizeIndex]
+                                 << "_H"
+                                 << fieldStrengths[currentFieldIndex]
+                                 << ".csv";
 
                         outputFile.open(filename.str());
 
-                        outputFile << "T,E,M,V,Y,Cv,X\n";
+                        outputFile << "H,T,E,dE,M,dM,V,dV,Y,dY,Cv,X\n";
                     }
                 }
                 else {
@@ -249,6 +311,7 @@ int main() {
         line3 << std::fixed << std::setprecision(2);
 
         line3 << "L = " << simulation.getSize()
+              << " | H = " << simulation.getMagneticFieldStrength()
               << " | V = " << simulation.getVortexDensity()
               << " | Eq = " << (simulation.isEquilibrated() ? "YES" : "NO")
               << " | Auto = " << (autoSweepMode ? "ON" : "OFF")
