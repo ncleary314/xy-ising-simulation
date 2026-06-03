@@ -48,6 +48,7 @@ UP / DOWN = temperature
 LEFT / RIGHT = lattice size
 W / S = magnetic field strength
 A / D = magnetic field direction
+SPACE = automatic observable collection (will produce csv files)
 
 # Model
 
